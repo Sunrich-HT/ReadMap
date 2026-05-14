@@ -190,15 +190,9 @@ npx quartz build --serve
 
 > 每篇论文都是矿石，ReadMap 是你的熔炉。<br>炼化流程可视化，知识结晶有迹可循。
 
-```
-PDF 矿石 ──► 精读熔炉 ──► Notion 铸模 ──► Wiki 陈列
-    │              │              │              │
-    ▼              ▼              ▼              ▼
- 原始文本      结构化笔记     可检索仓库      认知地图
-    │              │              │              │
-    └──────────────┴──────────────┴──────────────┘
-                      知识炼化全流程
-```
+<p align="center">
+  <img src="docs/assets/pipeline-flow.png" width="100%" alt="ReadMap 知识炼化全流程">
+</p>
 
 ### 已落地 ✅
 
