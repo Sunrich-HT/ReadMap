@@ -12,7 +12,7 @@
   <a href="#quick-start"><img src="https://img.shields.io/badge/⚡_Quick_Start-000000?style=for-the-badge&logoColor=white" alt="Quick Start"></a>
   <a href="prompts/"><img src="https://img.shields.io/badge/📝_View_Prompts-000000?style=for-the-badge&logoColor=white" alt="View Prompts"></a>
   <a href="docs/notion-setup.md"><img src="https://img.shields.io/badge/🔌_Notion_Setup-000000?style=for-the-badge&logoColor=white" alt="Notion Setup"></a>
-  <a href="https://github.com/nilbuild/readmap/discussions"><img src="https://img.shields.io/badge/💬_Discussions-000000?style=for-the-badge&logoColor=white" alt="Discussions"></a>
+  <a href="https://github.com/Sunrich-HT/readmap/discussions"><img src="https://img.shields.io/badge/💬_Discussions-000000?style=for-the-badge&logoColor=white" alt="Discussions"></a>
 </p>
 
 <p align="center">
@@ -101,7 +101,7 @@ The soul of ReadMap. Every Deep Dive follows the same skeleton — no more blank
 
 ```bash
 # 1. Clone & install
-git clone https://github.com/nilbuild/readmap.git
+git clone https://github.com/Sunrich-HT/readmap.git
 cd readmap
 python -m venv .venv && source .venv/bin/activate
 pip install -e "."
@@ -172,9 +172,9 @@ Full schema + setup guide → [docs/notion-setup.md](docs/notion-setup.md)
 If ReadMap helps your research workflow, please consider sharing it. It really does help!
 
 <p align="center">
-  <a href="https://twitter.com/intent/tweet?text=ReadMap%20%E2%80%94%20turn%20scattered%20papers%20into%20a%20structured%20knowledge%20base&url=https://github.com/nilbuild/readmap" target="_blank"><img src="https://img.shields.io/badge/Share_on_X-000000?style=flat-square&logo=x&logoColor=white" alt="X"></a>
-  <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://github.com/nilbuild/readmap" target="_blank"><img src="https://img.shields.io/badge/Share_on_LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-  <a href="https://www.reddit.com/submit?url=https://github.com/nilbuild/readmap&title=ReadMap%20%E2%80%94%20Community-driven%20paper%20reading%20pipeline" target="_blank"><img src="https://img.shields.io/badge/Share_on_Reddit-FF4500?style=flat-square&logo=reddit&logoColor=white" alt="Reddit"></a>
+  <a href="https://twitter.com/intent/tweet?text=ReadMap%20%E2%80%94%20turn%20scattered%20papers%20into%20a%20structured%20knowledge%20base&url=https://github.com/Sunrich-HT/readmap" target="_blank"><img src="https://img.shields.io/badge/Share_on_X-000000?style=flat-square&logo=x&logoColor=white" alt="X"></a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://github.com/Sunrich-HT/readmap" target="_blank"><img src="https://img.shields.io/badge/Share_on_LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
+  <a href="https://www.reddit.com/submit?url=https://github.com/Sunrich-HT/readmap&title=ReadMap%20%E2%80%94%20Community-driven%20paper%20reading%20pipeline" target="_blank"><img src="https://img.shields.io/badge/Share_on_Reddit-FF4500?style=flat-square&logo=reddit&logoColor=white" alt="Reddit"></a>
 </p>
 
 <p align="center">
@@ -199,13 +199,13 @@ npx quartz build --serve
 - Add new prompt variations
 - Improve the Markdown → Notion parser
 - Share your reading templates
-- Discuss ideas in [Discussions](https://github.com/nilbuild/readmap/discussions)
+- Discuss ideas in [Discussions](https://github.com/Sunrich-HT/readmap/discussions)
 - Spread the word
 
 ## Thanks to all contributors ❤
 
-<a href="https://github.com/nilbuild/readmap/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nilbuild/readmap" alt="Contributors" />
+<a href="https://github.com/Sunrich-HT/readmap/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Sunrich-HT/readmap" alt="Contributors" />
 </a>
 
 ## License
