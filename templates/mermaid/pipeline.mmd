@@ -1,0 +1,17 @@
+%% 方法 Pipeline 模板
+%% 用法：替换节点内容，用 style 高亮本文创新模块
+
+graph TD
+    A[输入数据<br/>Input] --> B[预处理模块<br/>Preprocessing]
+    B --> C[核心方法模块A<br/>Module A]
+    C --> D[核心方法模块B<br/>Module B]
+    D --> E[输出结果<br/>Output]
+    E --> F[评估指标<br/>Metrics]
+    
+    %% 高亮本文创新点
+    style C fill:#e1f5e1,stroke:#2e7d32,stroke-width:3px
+    style D fill:#e1f5e1,stroke:#2e7d32,stroke-width:3px
+    
+    %% 可选：标注关键损失/约束
+    C -.->|损失函数| G[Loss L1]
+    D -.->|约束条件| H[Constraint]
