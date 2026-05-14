@@ -5,7 +5,7 @@
 <h1 align="center">ReadMap</h1>
 
 <p align="center">
-  <b>Community-driven pipeline for turning scattered papers into a structured knowledge base.</b>
+  <b>阅读不是囤积，是炼化。<br>知识不是碎片，是晶体。</b>
 </p>
 
 <p align="center">
@@ -186,11 +186,41 @@ npx quartz build --serve
 - Discuss ideas in [Discussions](https://github.com/Sunrich-HT/readmap/discussions)
 - Spread the word
 
-## Thanks to all contributors ❤
+## 路线图 / 待办
 
-<a href="https://github.com/Sunrich-HT/readmap/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Sunrich-HT/readmap" alt="Contributors" />
-</a>
+> 每篇论文都是矿石，ReadMap 是你的熔炉。<br>炼化流程可视化，知识结晶有迹可循。
+
+```
+PDF 矿石 ──► 精读熔炉 ──► Notion 铸模 ──► Wiki 陈列
+    │              │              │              │
+    ▼              ▼              ▼              ▼
+ 原始文本      结构化笔记     可检索仓库      认知地图
+    │              │              │              │
+    └──────────────┴──────────────┴──────────────┘
+                      知识炼化全流程
+```
+
+### 已落地 ✅
+
+- [x] 三级精读体系（速扫 / Standard / Deep Dive）
+- [x] 12 节精读方法论 SOP
+- [x] Markdown → Notion 一键同步
+- [x] Wiki 认知地图自动生成（Quartz）
+- [x] MinerU 结构化 PDF 解析
+
+### 正在炼化 🔄
+
+- [ ] **知识炼化流程可视化** — 将论文阅读→笔记→归档的完整链路做成交互式时间轴
+- [ ] **知识晶体成熟度面板** — 追踪每个概念的演进：🌱 种子 → 🌿 在长 → 🌳 成熟 → 💎 结晶
+- [ ] **论文关系图谱 2.0** — 自动提取引用关系，生成交互式引用网络图
+- [ ] **领域地图自动构建** — 基于阅读内容，AI 辅助生成 Mermaid 领域地图初稿
+
+### 远景结晶 🔮
+
+- [ ] **个人知识图谱 3D 可视化** — 把 Notion + Wiki 的知识网络立体呈现
+- [ ] **阅读习惯量化分析** — 每月生成「阅读报告」：精读深度、领域分布、知识增长曲线
+- [ ] **跨论文概念溯源** — 追踪一个概念在多篇论文中的演变脉络
+- [ ] **知识晶体市场** — 分享你的精读模板和方法论，让知识流动起来
 
 ## License
 
