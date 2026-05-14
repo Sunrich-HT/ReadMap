@@ -15,9 +15,7 @@
   <a href="https://github.com/Sunrich-HT/readmap/discussions"><img src="https://img.shields.io/badge/💬_Discussions-000000?style=for-the-badge&logoColor=white" alt="Discussions"></a>
 </p>
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 <p align="center">
   <img src="docs/assets/pipeline.png" width="100%" alt="ReadMap Pipeline">
@@ -40,9 +38,7 @@ But six months later:
 
 ReadMap is the missing pipeline between papers and your brain.
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 <p align="center">
   <img src="docs/assets/tiers.png" width="90%" alt="3-Tier Reading System">
@@ -77,9 +73,7 @@ The soul of ReadMap. Every Deep Dive follows the same skeleton — no more blank
 
 > Standard covers sections 1, 3, 4, 10, 11, 12. Quick Scan covers section 1 only.
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 ## Two-Track Architecture
 
@@ -93,9 +87,7 @@ The soul of ReadMap. Every Deep Dive follows the same skeleton — no more blank
 
 **Notion is the warehouse. Wiki is the showroom.**
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 ## Quick Start
 
@@ -119,9 +111,7 @@ python -m readmap.sync_notion papers/2401.12345/deep-dive.md
 
 See [docs/notion-setup.md](docs/notion-setup.md) for step-by-step Notion database setup.
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 ## Project Structure
 
@@ -146,9 +136,7 @@ readmap/
     └── assets/                 # Logo, diagrams, divider
 ```
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 ## Notion Database Schema
 
@@ -163,9 +151,7 @@ ReadMap expects **4 databases**. Property names are configurable — edit `src/r
 
 Full schema + setup guide → [docs/notion-setup.md](docs/notion-setup.md)
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 ## Share with the community
 
@@ -177,9 +163,7 @@ If ReadMap helps your research workflow, please consider sharing it. It really d
   <a href="https://www.reddit.com/submit?url=https://github.com/Sunrich-HT/readmap&title=ReadMap%20%E2%80%94%20Community-driven%20paper%20reading%20pipeline" target="_blank"><img src="https://img.shields.io/badge/Share_on_Reddit-FF4500?style=flat-square&logo=reddit&logoColor=white" alt="Reddit"></a>
 </p>
 
-<p align="center">
-  <img src="docs/assets/divider.svg" width="100%" alt="divider">
-</p>
+![](docs/assets/divider.png)
 
 ## Development
 
