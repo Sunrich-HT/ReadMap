@@ -1,6 +1,6 @@
 # Notion Setup Guide
 
-Paper Nexus syncs your Markdown reading notes to a Notion "Literature Database". This guide shows you how to set it up.
+ReadMap syncs your Markdown reading notes to a Notion "Literature Database". This guide shows you how to set it up.
 
 ---
 
@@ -8,7 +8,7 @@ Paper Nexus syncs your Markdown reading notes to a Notion "Literature Database".
 
 1. Go to [https://www.notion.so/my-integrations](https://www.notion.so/my-integrations)
 2. Click **"New integration"**
-3. Name it "Paper Nexus" (or whatever you prefer)
+3. Name it "ReadMap" (or whatever you prefer)
 4. Select your workspace
 5. Copy the **Internal Integration Token** (starts with `secret_` or `ntn_`)
 6. Paste it into your `.env` as `NOTION_TOKEN`
@@ -38,6 +38,22 @@ This is the main database where your paper notes live.
 | **与我研究的关系** | Select | e.g., `直接竞争`, `可借鉴`, `密切相关`, `参考`, `无关` |
 | **速查卡** | Rich Text | Short reference card |
 | **主题** | Multi-select | Your research topics |
+| **文档类型** | Select | `单篇精读`, `Radar 综述`, `自主教程`, `复现报告` |
+| **证据等级** | Select | `L1`, `L2`, `L3`, `L4`, `L5` |
+| **项目关系** | Select | `none`, `cite`, `design`, `warning`, `analogy` |
+| **关系理由** | Rich Text | Required whenever 项目关系 ≠ `none` |
+| **决策闭环** | Select | `阅读完成`, `证据核验完成`, `复现完成`, `迁移实验完成`, `已进入论文` |
+| **最终判决** | Select | `真突破`, `扎实增量`, `工程整合`, `评测贡献`, `有趣但证据不足`, `包装大于贡献`, `当前无法判断` |
+| **评分制式** | Select | `5 分制`, `10 分制` |
+| **评分归一** | Number | 0–1, computed from score ÷ scale |
+
+> **Why the extra columns.** A twelve-section document and a two-paragraph
+> summary look equally authoritative once both are filed as "Deep Dive". These
+> fields keep the distinctions that length hides: how far verification actually
+> went (证据等级), whether the paper changed anything in your own work
+> (项目关系, defaulting to `none`), and whether the question is closed or merely
+> written up (决策闭环). 评分归一 exists because a 4/5 and a 4/10 are not the
+> same number, and a single numeric column sorted them as if they were.
 
 ### Database 2: Reading Queue (`NOTION_QUEUE_ID`)
 
@@ -84,7 +100,7 @@ For **each** database page:
 1. Open the database page in Notion
 2. Click **"Share"** (top-right)
 3. Click **"Add people, emails, groups or integrations"**
-4. Search for your integration name ("Paper Nexus")
+4. Search for your integration name ("ReadMap")
 5. Select it and confirm
 
 > **Important:** The integration must have access to the database **page itself**, not just the parent page.
@@ -109,10 +125,12 @@ For **each** database page:
 ## Step 5: Test the Connection
 
 ```bash
-python -m readmap.sync_notion --help
+readmap --help          # works without any credentials
+readmap gate ./papers   # checks notes offline
 ```
 
-If you see the help text without errors, your config is loaded correctly.
+Commands that never touch Notion run without credentials. To verify the Notion
+side specifically, sync a test note as shown below.
 
 To test a real sync:
 ```bash

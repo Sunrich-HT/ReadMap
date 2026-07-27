@@ -22,6 +22,18 @@ PROP_REVIEWER_SCORE = "Reviewer评分"
 PROP_RELEVANCE = "与我研究的关系"
 PROP_QUICK_REF = "速查卡"
 
+# Fields that keep the distinctions a reading has to make explicit. Without
+# them the database cannot tell a verified reading from a long summary, or a
+# paper that changed a claim from one that merely came to mind.
+PROP_DOC_TYPE = "文档类型"
+PROP_EVIDENCE_LEVEL = "证据等级"
+PROP_PROJECT_RELATION = "项目关系"
+PROP_RELATION_REASON = "关系理由"
+PROP_CLOSURE = "决策闭环"
+PROP_VERDICT = "最终判决"
+PROP_SCORE_SCALE = "评分制式"
+PROP_SCORE_NORM = "评分归一"
+
 
 def api_get(path: str) -> dict:
     import requests
@@ -136,16 +148,18 @@ def create_detail_page(parent_id: str, title: str, blocks: list[dict]) -> str:
 
 def add_to_reading_queue(title: str, url: str = "", source: str = "精读衍生", reason: str = ""):
     """Add a paper to the Reading Queue."""
-    api_post("pages", {
-        "parent": {"database_id": cfg.notion.queue_db_id},
-        "properties": {
-            "论文标题": {"title": [{"text": {"content": title}}]},
-            "来源": {"select": {"name": source}},
-            "状态": {"status": {"name": "待处理"}},
-            "链接": {"url": url} if url else {},
-            "推荐理由": {"rich_text": [{"text": {"content": reason}}]} if reason else {},
-        }
-    })
+    # Notion rejects `{}` as a property value with a 400. Omit absent fields
+    # rather than sending an empty object for them.
+    properties = {
+        "论文标题": {"title": [{"text": {"content": title}}]},
+        "来源": {"select": {"name": source}},
+        "状态": {"status": {"name": "待处理"}},
+    }
+    if url:
+        properties["链接"] = {"url": url}
+    if reason:
+        properties["推荐理由"] = {"rich_text": [{"text": {"content": reason}}]}
+    api_post("pages", {"parent": {"database_id": cfg.notion.queue_db_id}, "properties": properties})
 
 
 def get_page_url(page_id: str) -> str:

@@ -191,7 +191,9 @@ def fetch_web_article(url: str, output_dir: Path) -> dict:
 
     # 1. Extract article text
     try:
-        jina_url = f"https://r.jina.ai/http://{url}"
+        # r.jina.ai takes the target URL verbatim. Prefixing "http://" onto a
+        # URL that already carries a scheme produced .../http://https://...
+        jina_url = f"https://r.jina.ai/{url}"
         resp = requests.get(jina_url, timeout=60, headers={"User-Agent": "Mozilla/5.0"})
         resp.raise_for_status()
         article_text = resp.text

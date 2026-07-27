@@ -1,5 +1,5 @@
 """
-Paper Nexus — Academic Paper Deep-Reading Pipeline
+ReadMap — Academic Paper Deep-Reading Pipeline
 
 A tool chain for:
   1. Downloading & parsing papers (arXiv, OpenReview, web articles)

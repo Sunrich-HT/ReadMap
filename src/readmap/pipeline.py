@@ -110,7 +110,7 @@ def run_full_pipeline(url_or_id: str, mode: str | None = None):
       7. Return results
     """
     print(f"\n{'=' * 60}")
-    print(f"PAPER NEXUS — Full Pipeline")
+    print("ReadMap — Full Pipeline")
     print(f"{'=' * 60}")
     print(f"URL: {url_or_id}")
 
@@ -171,7 +171,7 @@ def run_full_pipeline(url_or_id: str, mode: str | None = None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Paper Nexus — Full Pipeline")
+    parser = argparse.ArgumentParser(description="ReadMap — Full Pipeline")
     parser.add_argument("url_or_id", help="Paper URL or arXiv ID")
     parser.add_argument("--mode", choices=["quick-scan", "standard", "deep-dive"], help="Reading mode")
     parser.add_argument("--md-file", help="Path to pre-generated markdown file")

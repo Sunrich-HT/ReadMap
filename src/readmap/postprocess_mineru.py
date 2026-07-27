@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""
+r"""
 MinerU pipeline 输出后处理
 针对已知问题做修复：
 1. LaTeX 清理：去掉 \begin{array} { r } 中多余的空格和 { } 包裹
-2. Table 3 修复：用清晰截图替代错乱的 HTML
-3. 删除冗余图片：清理 images/ 中未被引用的图片
-4. 输出 paper_clean.md
+2. 报告 images/ 中未被引用的图片（删除需显式开启）
+3. 输出 paper_clean.md
 """
 
 import argparse
@@ -15,7 +14,7 @@ from pathlib import Path
 
 
 def clean_latex(content: str) -> str:
-    """
+    r"""
     清理 MinerU 生成的混乱 LaTeX 格式。
     主要问题：\begin{array} { r } { ... } \end{array} 中多余空格和 { } 包裹
     """
@@ -97,21 +96,26 @@ def clean_latex(content: str) -> str:
         content
     )
 
-    # 规则 5: 清理普通下标中的空格：h \ : = \ : 8 → h := 8
-    content = re.sub(r'\$\s*h\s*\\\s*:\s*=\s*\\\s*:\s*8\s*\$', r'$h := 8$', content)
+    # 规则 5: 清理 "a \ : = \ : b" 这类被拆开的赋值符号
+    content = re.sub(r'\$\s*([A-Za-z])\s*\\\s*:\s*=\s*\\\s*:\s*(\d+)\s*\$', r'$\1 := \2$', content)
 
     # 规则 6: 清理下标中的空格：W _ { 1 } → W_1，b _ { 1 } → b_1
     content = re.sub(r'([a-zA-Z])\s*_\s*\{\s*(\d+)\s*\}', r'\1_{\2}', content)
     # 清理下标变量：d _ { \mathrm { model } } → d_{\mathrm{model}}
     content = re.sub(r'([a-zA-Z])\s*_\s*\{\s*\\mathrm\{([^}]+)\}\s*\}', r'\1_{\\mathrm{\2}}', content)
 
-    # 规则 7: 清理括号周围的空格：( 0 , x → (0, x
-    content = re.sub(r'\(\s+', '(', content)
-    content = re.sub(r'\s+\)', ')', content)
-    # 清理逗号周围的空格：, xW → , xW（保留一个空格在逗号后）
-    content = re.sub(r',\s+', ', ', content)
-    # 清理多余空格：两个空格变一个
-    content = re.sub(r'  +', ' ', content)
+    # 规则 7: 括号与逗号周围的空格 —— 只在数学环境内做。
+    # 这些替换原本作用于整篇文档，会压掉 Markdown 表格的对齐空格和代码块缩进，
+    # 为了修公式而破坏正文是不划算的交换。
+    def _tidy_math(match):
+        inner = match.group(0)
+        inner = re.sub(r'\(\s+', '(', inner)
+        inner = re.sub(r'\s+\)', ')', inner)
+        inner = re.sub(r'\s*,\s*', ', ', inner)
+        return re.sub(r'  +', ' ', inner)
+
+    content = re.sub(r'\$\$.*?\$\$', _tidy_math, content, flags=re.DOTALL)
+    content = re.sub(r'(?<!\$)\$[^$\n]+\$(?!\$)', _tidy_math, content)
 
     # 规则 8: 清理 \mathrm{head}_{\mathrm{h} } → \mathrm{head}_{\mathrm{h}}
     content = re.sub(r'\\mathrm\{([^}]+)\}_\{\\mathrm\{([^}]+)\}\s*\}', r'\\mathrm{\1}_{\\mathrm{\2}}', content)
@@ -119,43 +123,42 @@ def clean_latex(content: str) -> str:
     return content
 
 
-def fix_table3(content: str) -> str:
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+
+def find_unreferenced_images(content: str, images_dir: Path) -> list[Path]:
+    """Images on disk that the Markdown never references.
+
+    Matching is by filename appearing anywhere in the text, which is a weak
+    test — hence reporting rather than deleting by default.
     """
-    修复 Table 3：MinerU 的 HTML 结构错乱，用清晰截图替代。
-    Table 3 截图: da52b01f55903301b9bf6335519ab22f1dec04faea092f8e6892cfbd4c9a6aae.jpg
+    if not images_dir or not images_dir.exists():
+        return []
+    return [
+        p for p in sorted(images_dir.iterdir())
+        if p.suffix.lower() in IMAGE_SUFFIXES and p.name not in content
+    ]
+
+
+def remove_unreferenced_images(content: str, images_dir: Path, *, delete: bool = False) -> int:
+    """Report — and only on request, delete — unreferenced images.
+
+    This used to unlink files unconditionally, and only ``.jpg`` ones, on every
+    fetch. Deleting a user's extracted figures because a filename did not appear
+    in a text file is not a cleanup step worth taking without being asked.
     """
-    # 找到 Table 3 的 caption 和紧跟的 <table>...<table>
-    pattern = r'(Table 3: Variations on the Transformer architecture\.[^\n]*)\n*<table>.*?</table>'
-
-    def replacer(match):
-        caption = match.group(1)
-        return (
-            f'{caption}\n\n'
-            f'> [!note] 表格解析说明\n'
-            f'> 以下为 PDF 原文截图，MinerU 自动解析的 HTML 表格结构存在错乱，故使用原图替代。\n\n'
-            f'![](images/da52b01f55903301b9bf6335519ab22f1dec04faea092f8e6892cfbd4c9a6aae.jpg)\n'
-        )
-
-    content, n = re.subn(pattern, replacer, content, flags=re.DOTALL)
-    if n > 0:
-        print(f"  [FIXED] Table 3 replaced with screenshot (n={n})")
-    return content
+    orphans = find_unreferenced_images(content, images_dir)
+    for path in orphans:
+        if delete:
+            path.unlink()
+            print(f"  [REMOVED] {path.name} (unreferenced)")
+        else:
+            print(f"  [ORPHAN] {path.name} (unreferenced; pass --delete-orphans to remove)")
+    return len(orphans)
 
 
-def remove_unreferenced_images(content: str, images_dir: Path) -> int:
-    """
-    删除 images/ 中未被 markdown content 引用的图片
-    """
-    removed = 0
-    for img_path in list(images_dir.glob("*.jpg")):
-        if img_path.name not in content:
-            img_path.unlink()
-            removed += 1
-            print(f"  [REMOVED] {img_path.name} (unreferenced)")
-    return removed
-
-
-def postprocess(mineru_md_path: Path, images_dir: Path, output_path: Path | None = None) -> Path:
+def postprocess(mineru_md_path: Path, images_dir: Path, output_path: Path | None = None,
+                *, delete_orphans: bool = False) -> Path:
     """主入口"""
     if output_path is None:
         output_path = mineru_md_path.with_name("paper_clean.md")
@@ -165,16 +168,12 @@ def postprocess(mineru_md_path: Path, images_dir: Path, output_path: Path | None
     original = content
 
     # 1. 清理 LaTeX
-    print("\n[1/3] Cleaning LaTeX formatting...")
+    print("\n[1/2] Cleaning LaTeX formatting...")
     content = clean_latex(content)
 
-    # 2. 修复 Table 3
-    print("\n[2/3] Fixing Table 3...")
-    content = fix_table3(content)
-
-    # 3. 删除冗余图片（基于最终 content，避免误删修复后新增引用的图片）
-    print("\n[3/3] Removing unreferenced images...")
-    removed = remove_unreferenced_images(content, images_dir)
+    # 2. 未被引用的图片：默认只报告
+    print("\n[2/2] Checking for unreferenced images...")
+    removed = remove_unreferenced_images(content, images_dir, delete=delete_orphans)
 
     # 4. 清理多余空行
     content = re.sub(r'\n{3,}', '\n\n', content)
@@ -184,7 +183,7 @@ def postprocess(mineru_md_path: Path, images_dir: Path, output_path: Path | None
     print(f"\n{'='*50}")
     print(f"Done: {output_path}")
     print(f"  Size: {len(original)} → {len(content)} chars")
-    print(f"  Images removed: {removed}")
+    print(f"  Unreferenced images: {removed}{' (deleted)' if delete_orphans else ' (kept)'}")
     print(f"{'='*50}")
     return output_path
 
@@ -194,12 +193,14 @@ def main():
     parser.add_argument("md_file", help="Path to MinerU generated markdown")
     parser.add_argument("--images-dir", "-i", help="Path to images directory")
     parser.add_argument("--output", "-o", help="Output path")
+    parser.add_argument("--delete-orphans", action="store_true",
+                        help="Actually delete unreferenced images (default: report only)")
     args = parser.parse_args()
 
     md_path = Path(args.md_file)
     images_dir = Path(args.images_dir) if args.images_dir else md_path.parent / "images"
     output_path = Path(args.output) if args.output else None
-    postprocess(md_path, images_dir, output_path)
+    postprocess(md_path, images_dir, output_path, delete_orphans=args.delete_orphans)
 
 
 if __name__ == "__main__":

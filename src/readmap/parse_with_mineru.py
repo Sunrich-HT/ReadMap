@@ -29,14 +29,23 @@ def run_mineru(pdf_path: Path, output_dir: Path, backend: str = "pipeline") -> d
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # 查找项目根目录下的 .venv（优先），否则回退到系统 Python
+    # MinerU pulls in a heavy, conflicting dependency set, so the README asks
+    # for it in a separate .venv-mineru. The code looked only for .venv, i.e.
+    # the one environment guaranteed *not* to have MinerU installed.
     script_dir = Path(__file__).resolve().parent
     python_exec = None
-    for level in range(5):
-        candidate = script_dir.parents[level] / ".venv" / "bin" / "python"
-        if candidate.exists():
-            python_exec = candidate
-            break
+    env_override = os.environ.get("MINERU_PYTHON", "").strip()
+    if env_override and Path(env_override).exists():
+        python_exec = Path(env_override)
+    else:
+        for level in range(5):
+            for venv_name in (".venv-mineru", ".venv"):
+                candidate = script_dir.parents[level] / venv_name / "bin" / "python"
+                if candidate.exists():
+                    python_exec = candidate
+                    break
+            if python_exec:
+                break
     if not python_exec:
         python_exec = Path(sys.executable)
     

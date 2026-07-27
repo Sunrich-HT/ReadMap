@@ -284,6 +284,8 @@ mindmap
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Wiki knowledge maps from Notion")
+    parser.add_argument("--papers-dir", default=None,
+                        help="Papers directory (accepted for pipeline compatibility)")
     parser.add_argument("--wiki-dir", default="./wiki", help="Wiki output directory")
     parser.add_argument("--research-lines", default="", help="Comma-separated research lines")
     args = parser.parse_args()

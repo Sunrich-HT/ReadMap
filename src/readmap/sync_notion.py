@@ -34,7 +34,25 @@ from readmap.notion_client import (
     PROP_TITLE,
     PROP_TOPICS,
     PROP_URL,
+    PROP_VENUE,
     PROP_YEAR,
+)
+from readmap.notion_client import (
+    PROP_CLOSURE,
+    PROP_DOC_TYPE,
+    PROP_EVIDENCE_LEVEL,
+    PROP_PROJECT_RELATION,
+    PROP_RELATION_REASON,
+    PROP_SCORE_NORM,
+    PROP_SCORE_SCALE,
+    PROP_VERDICT,
+)
+from readmap.schema import (
+    CLOSURE_BY_KEY,
+    DOC_TYPES,
+    EVIDENCE_LEVELS,
+    PROJECT_RELATIONS,
+    VERDICTS,
 )
 
 
@@ -100,7 +118,51 @@ def upload_blocks_to_notion(page_id: str, blocks: list[dict]) -> tuple[int, int]
 
 
 def parse_markdown_note(md_path: Path) -> dict:
-    """Parse a local Markdown reading note."""
+    """Parse a local Markdown reading note.
+
+    Delegates front-matter parsing to :mod:`readmap.notes` so the gate, the
+    composer and this sync all read a note the same way.
+    """
+    from readmap.notes import one_line_summary, parse_note
+
+    meta, body = parse_note(md_path)
+    result = {
+        "title": meta.title,
+        "authors": meta.authors,
+        "year": meta.year,
+        "venue": meta.venue,
+        "url": meta.url,
+        "mode": _mode_from(meta),
+        "tags": ", ".join(meta.tags),
+        "reviewer_score": meta.score,
+        "score_scale": meta.score_scale,
+        "score_normalised": meta.score_normalised,
+        "doc_type": meta.doc_type,
+        "evidence_level": meta.evidence_level,
+        "project_relation": meta.project_relation,
+        "relation_reason": meta.relation_reason,
+        "closure": meta.closure,
+        "verdict": meta.verdict,
+        "relevance": "",
+        "quick_ref": "",
+        "content": body,
+        "one_line_summary": one_line_summary(body),
+    }
+    summary_match = re.search(r"> \[!summary\].*?(?=\n## |\n---|\Z)", body, re.DOTALL)
+    if summary_match:
+        result["quick_ref"] = (
+            summary_match.group(0).replace("> ", "").replace("[!summary]", "").strip()
+        )
+    return result
+
+
+def _mode_from(meta) -> str:
+    """Map evidence level onto the legacy reading-mode column."""
+    return {"L1": "quick-scan", "L2": "standard"}.get(meta.evidence_level, "deep-dive")
+
+
+def _legacy_parse_markdown_note(md_path: Path) -> dict:
+    """The previous hand-rolled front-matter reader, kept for reference."""
     content = md_path.read_text(encoding="utf-8")
 
     result = {
@@ -195,7 +257,16 @@ def build_paper_properties(info: dict) -> dict:
         }
 
     props[PROP_READ_DATE] = {"date": {"start": datetime.now().strftime("%Y-%m-%d")}}
-    props[PROP_READ_STATUS] = {"status": {"name": "精读完成"}}
+    # Reading status must follow the mode. Writing "精读完成" for every sync
+    # marked five-minute scans as completed deep reads.
+    status_by_mode = {
+        "quick-scan": "速扫完成",
+        "standard": "精读完成",
+        "deep-dive": "精读完成",
+    }
+    props[PROP_READ_STATUS] = {
+        "status": {"name": status_by_mode.get(info.get("mode", ""), "精读完成")}
+    }
 
     if info.get("mode"):
         mode_map = {
@@ -219,15 +290,65 @@ def build_paper_properties(info: dict) -> dict:
         props[PROP_QUICK_REF] = {"rich_text": [{"text": {"content": info["quick_ref"]}}]}
 
     if info.get("tags"):
-        tags = [t.strip() for t in info["tags"].replace("，", ",").split(",") if t.strip()]
+        # Strip bracket and quote residue: topic columns had picked up `[paper`
+        # and `debate]` from lists that were stringified rather than serialised.
+        raw = info["tags"].strip().strip("[]")
+        tags = [t.strip().strip("\"'[]") for t in raw.replace("，", ",").split(",")]
+        tags = [t for t in tags if t]
         if tags:
             props[PROP_TOPICS] = {"multi_select": [{"name": t} for t in tags]}
 
+    _add_schema_properties(props, info)
     return props
 
 
-def sync_paper_to_notion(md_path: Path, clear_existing: bool = True) -> str:
-    """Sync a single paper note to the Notion literature database."""
+def _add_schema_properties(props: dict, info: dict) -> None:
+    """Write the fields that separate length from evidence.
+
+    Each is a select with a fixed vocabulary, so the database can be sorted and
+    filtered on them instead of on how long the page is.
+    """
+    doc_type = info.get("doc_type")
+    if doc_type in DOC_TYPES:
+        props[PROP_DOC_TYPE] = {"select": {"name": DOC_TYPES[doc_type]}}
+
+    level = (info.get("evidence_level") or "").upper()
+    if level in EVIDENCE_LEVELS:
+        props[PROP_EVIDENCE_LEVEL] = {"select": {"name": level}}
+
+    relation = info.get("project_relation")
+    if relation in PROJECT_RELATIONS:
+        props[PROP_PROJECT_RELATION] = {"select": {"name": relation}}
+    if info.get("relation_reason"):
+        props[PROP_RELATION_REASON] = {
+            "rich_text": [{"text": {"content": info["relation_reason"][:1900]}}]
+        }
+
+    closure = info.get("closure")
+    if closure in CLOSURE_BY_KEY:
+        props[PROP_CLOSURE] = {"select": {"name": CLOSURE_BY_KEY[closure]}}
+
+    verdict = info.get("verdict")
+    if verdict in VERDICTS:
+        props[PROP_VERDICT] = {"select": {"name": VERDICTS[verdict]}}
+
+    # A bare reviewer number is meaningless across notes that mix 5- and
+    # 10-point scales, so store the scale and a normalised value alongside it.
+    scale = info.get("score_scale")
+    if scale in (5, 10):
+        props[PROP_SCORE_SCALE] = {"select": {"name": f"{scale} 分制"}}
+    if info.get("score_normalised") is not None:
+        props[PROP_SCORE_NORM] = {"number": info["score_normalised"]}
+
+
+def sync_paper_to_notion(md_path: Path, clear_existing: bool = False) -> str:
+    """Sync a single paper note to the Notion literature database.
+
+    ``clear_existing`` defaults to False. It deletes every block on the page
+    before uploading, so any annotation or comment added inside Notion is lost —
+    that is a reasonable thing to ask for, and an unreasonable thing to do by
+    default.
+    """
     print(f"\n📄 Syncing: {md_path.name}")
     info = parse_markdown_note(md_path)
     print(f"  Title: {info['title']}")
@@ -265,7 +386,10 @@ def sync_paper_to_notion(md_path: Path, clear_existing: bool = True) -> str:
 def main():
     parser = argparse.ArgumentParser(description="Sync paper notes to Notion")
     parser.add_argument("md_file", help="Path to markdown file or directory")
-    parser.add_argument("--no-clear", action="store_true", help="Keep existing blocks")
+    parser.add_argument("--no-clear", action="store_true",
+                        help="Deprecated: keeping existing blocks is now the default")
+    parser.add_argument("--replace", action="store_true",
+                        help="Delete existing page blocks before uploading (destroys manual edits)")
     parser.add_argument("--batch", action="store_true", help="Batch sync directory")
     args = parser.parse_args()
 
@@ -276,11 +400,11 @@ def main():
             if f.name.startswith("_"):
                 continue
             try:
-                sync_paper_to_notion(f, not args.no_clear)
+                sync_paper_to_notion(f, args.replace)
             except Exception as e:
                 print(f"  ❌ {e}")
     else:
-        sync_paper_to_notion(Path(args.md_file), not args.no_clear)
+        sync_paper_to_notion(Path(args.md_file), args.replace)
 
     print("\n🎉 Done!")
 

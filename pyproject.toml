@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "readmap"
-version = "0.1.0"
+version = "0.2.0"
 description = "A pipeline for academic paper deep-reading, Notion sync, and wiki knowledge mapping."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"},
+    {name = "Sun Haotong", email = "richsun821@gmail.com"},
 ]
 keywords = ["academic", "paper", "notion", "markdown", "research", "wiki"]
 classifiers = [
@@ -30,6 +30,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+figures = [
+    "figure-extractor @ git+https://github.com/Sunrich-HT/figure-extractor",
+]
 dev = [
     "pytest>=7.0",
     "black>=23.0",
@@ -40,9 +43,9 @@ dev = [
 readmap = "readmap.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/readmap"
-Repository = "https://github.com/yourusername/readmap"
-Issues = "https://github.com/yourusername/readmap/issues"
+Homepage = "https://github.com/Sunrich-HT/ReadMap"
+Repository = "https://github.com/Sunrich-HT/ReadMap"
+Issues = "https://github.com/Sunrich-HT/ReadMap/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -53,4 +56,6 @@ target-version = ['py310']
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "I"]

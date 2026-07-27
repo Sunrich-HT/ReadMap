@@ -80,7 +80,7 @@ def run_update_wiki():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Paper Nexus — Quick Commands")
+    parser = argparse.ArgumentParser(description="ReadMap — Quick Commands")
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     sub.add_parser("quick-scan", aliases=["scan"]).add_argument("url_or_id", help="Paper URL or arXiv ID")
