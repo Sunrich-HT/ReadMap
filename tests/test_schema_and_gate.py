@@ -159,3 +159,39 @@ def test_escape_residue_covers_both_angle_brackets(tmp_path):
     found = " ".join(f.message for f in check(meta, body, strict=False).findings)
     assert "转义残留" in found
     assert "\\<" in found and "\\>" in found
+
+
+def test_gate_blocks_a_figure_gallery(tmp_path):
+    """Images stacked with no prose between them are a gallery, not illustration."""
+    body = (
+        "## 承重审计\n\n真正承重的是 Table 3 的交叉结果。\n\n"
+        "![Figure 1 · 纠偏跷跷板](a.png)\n"
+        "![Figure 2 · 尺度趋势](b.png)\n"
+        "![Figure 3 · 语义类别](c.png)\n"
+    )
+    meta, parsed = _note(tmp_path, 'title: "T"', body)
+    blocking = " ".join(f.message for f in check(meta, parsed, strict=False).blocking)
+    assert "连续堆叠" in blocking
+
+
+def test_gate_flags_a_figure_far_from_its_discussion(tmp_path):
+    """Every figure had prose somewhere; none of it was next to the figure."""
+    body = (
+        "## 结果\n\nQwen2.5 五个尺寸呈总体尺度趋势。见 Figure 2。\n\n"
+        + "无关正文。\n" * 12
+        + "\n![Figure 2 · 尺度趋势](b.png)\n\n更多无关正文。\n"
+    )
+    meta, parsed = _note(tmp_path, 'title: "T"', body)
+    warned = " ".join(f.message for f in check(meta, parsed, strict=False).warnings)
+    assert "脱节" in warned
+
+
+def test_a_figure_beside_its_own_discussion_passes(tmp_path):
+    body = (
+        "## 结果\n\nQwen2.5 在 32B 附近明显跃升，见 Figure 2。\n\n"
+        "![Figure 2 · 尺度趋势](b.png)\n\n"
+        "该跃升只出现在单一家族，不足以单独证明相变式涌现。\n"
+    )
+    meta, parsed = _note(tmp_path, 'title: "T"', body)
+    msgs = " ".join(f.message for f in check(meta, parsed, strict=False).findings)
+    assert "连续堆叠" not in msgs and "脱节" not in msgs

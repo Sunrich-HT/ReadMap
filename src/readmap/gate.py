@@ -160,6 +160,10 @@ def _check_evidence_tags(body: str) -> list[Finding]:
         stripped = line.strip()
         if not stripped or stripped.startswith(("|---", "#", "```")):
             continue
+        # An image line is not a claim, and `figure01_p07.png` is not a number
+        # the reading is asserting.
+        if _IMAGE_RE.match(line):
+            continue
         scannable = _SECTION_NUMBER_RE.sub("", stripped, count=1)
         if _CLAIM_NUMBER_RE.search(scannable) and not _TAGGED_RE.search(stripped):
             untagged += 1
@@ -174,7 +178,8 @@ def _check_evidence_tags(body: str) -> list[Finding]:
 # Decision closure
 # ---------------------------------------------------------------------------
 
-_DECISION_RE = re.compile(r"^\s*-\s*\[[xX]\]\s*(引用|改 ?claim|改实验|登记不行动|最小验证实验)")
+# Allow the markdown emphasis a real note actually uses around the choice.
+_DECISION_RE = re.compile(r"^\s*-\s*\[[xX]\]\s*[*_\s]*(引用|改 ?claim|改实验|登记不行动|最小验证实验)")
 
 
 def _check_closure(body: str, meta: ReadingMeta) -> list[Finding]:
@@ -190,6 +195,90 @@ def _check_closure(body: str, meta: ReadingMeta) -> list[Finding]:
         ))
     if not meta.verdict:
         out.append(Finding(WARN, "verdict 为空 —— 最终判决必须落到那七个选项之一"))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Figure placement
+# ---------------------------------------------------------------------------
+
+_IMAGE_RE = re.compile(r"^\s*!\[(?P<alt>[^\]]*)\]\([^)]+\)\s*$")
+_LABEL_IN_ALT_RE = re.compile(
+    r"(?P<kind>Figure|Fig\.?|Table|Tab\.?|图|表)\s*(?P<num>[A-Za-z]?\.?\d+(?:\.\d+)*)", re.I
+)
+_KIND_ALIASES = {
+    "figure": r"Fig(?:ure)?\.?|图", "fig": r"Fig(?:ure)?\.?|图", "图": r"Fig(?:ure)?\.?|图",
+    "table": r"Tab(?:le)?\.?|表", "tab": r"Tab(?:le)?\.?|表", "表": r"Tab(?:le)?\.?|表",
+}
+# How far from an image its discussion may sit and still count as adjacent.
+_ADJACENCY_LINES = 6
+
+
+def _check_figure_placement(body: str) -> list[Finding]:
+    """A figure belongs beside the sentence it explains.
+
+    Collecting every image in one place produces a gallery: each figure has
+    prose about it *somewhere*, and none of it is next to the figure. The
+    reader then has to hold the picture in memory while scrolling to find what
+    it was for — which is the opposite of what an illustration is for.
+
+    Two symptoms are mechanically detectable: images stacked back to back with
+    no text between them, and an image whose own label appears nowhere in the
+    surrounding lines.
+    """
+    lines = body.split("\n")
+    images: list[tuple[int, str]] = []
+    for n, line in enumerate(lines):
+        m = _IMAGE_RE.match(line)
+        if m:
+            images.append((n, m.group("alt")))
+
+    out: list[Finding] = []
+    if not images:
+        return out
+
+    # Runs of images separated by nothing but blank lines.
+    run = 1
+    for (prev_n, _), (n, _) in zip(images, images[1:]):
+        between = [ln for ln in lines[prev_n + 1:n] if ln.strip()]
+        if not between:
+            run += 1
+            continue
+        if run > 1:
+            out.append(Finding(
+                BLOCK,
+                f"{run} 张图连续堆叠、中间没有解释文字 —— 图要放在它解释的那句话旁边，"
+                f"不是集中成图廊",
+                prev_n + 1,
+            ))
+        run = 1
+    if run > 1:
+        out.append(Finding(
+            BLOCK,
+            f"{run} 张图连续堆叠、中间没有解释文字 —— 图要放在它解释的那句话旁边，"
+            f"不是集中成图廊",
+            images[-1][0] + 1,
+        ))
+
+    # An image whose label is never mentioned nearby is orphaned from its point.
+    for n, alt in images:
+        m = _LABEL_IN_ALT_RE.search(alt)
+        if not m:
+            continue
+        number = re.escape(m.group("num"))
+        kind = _KIND_ALIASES.get(m.group("kind").lower().rstrip("."), r"Fig(?:ure)?\.?|Tab(?:le)?\.?|图|表")
+        window_lines = [
+            ln for i, ln in enumerate(lines[max(0, n - _ADJACENCY_LINES): n + _ADJACENCY_LINES + 1])
+            if not _IMAGE_RE.match(ln)  # neighbouring images do not vouch for each other
+        ]
+        window = "\n".join(window_lines)
+        if not re.search(rf"(?:{kind})\s*{number}\b", window, re.I):
+            out.append(Finding(
+                WARN,
+                f"「{alt[:36]}」附近 ±{_ADJACENCY_LINES} 行没有提到它 —— "
+                f"图与讨论它的文字脱节，应移到对应论述旁，或移出正文放进附件",
+                n + 1,
+            ))
     return out
 
 
@@ -212,6 +301,7 @@ def check(meta: ReadingMeta, body: str, *, strict: bool = True) -> GateReport:
     report.findings += _check_evidence_tags(body)
     report.findings += _check_closure(body, meta)
     report.findings += _check_duplication(body)
+    report.findings += _check_figure_placement(body)
     if strict:
         report.findings += _check_placeholders(body)
 
