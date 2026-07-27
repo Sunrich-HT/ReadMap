@@ -237,6 +237,27 @@ def _legacy_parse_markdown_note(md_path: Path) -> dict:
     return result
 
 
+# Venue is a curated select. arXiv primary categories ("cs.CL", "stat.ML") are
+# not venues, and writing them straight through adds a new option per category —
+# the same mechanism that filled the topic property with bracket fragments.
+_ARXIV_CATEGORY = re.compile(r"^(?:cs|stat|math|physics|q-bio|q-fin|eess|econ)\.[A-Za-z-]+$")
+_KNOWN_VENUES = {
+    "neurips": "NeurIPS", "icml": "ICML", "iclr": "ICLR", "acl": "ACL",
+    "emnlp": "EMNLP", "aaai": "AAAI", "jcim": "JCIM", "nature": "Nature",
+    "science": "Science", "anthropic": "Anthropic", "openai": "OpenAI",
+    "arxiv": "arXiv",
+}
+
+
+def _normalise_venue(raw: str) -> str:
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    if _ARXIV_CATEGORY.match(raw):
+        return "arXiv"
+    return _KNOWN_VENUES.get(raw.lower(), raw)
+
+
 def build_paper_properties(info: dict) -> dict:
     """Build Notion database properties from parsed note metadata."""
     props = {}
@@ -247,8 +268,9 @@ def build_paper_properties(info: dict) -> dict:
         props[PROP_AUTHORS] = {"rich_text": [{"text": {"content": info["authors"]}}]}
     if info.get("year"):
         props[PROP_YEAR] = {"number": info["year"]}
-    if info.get("venue"):
-        props[PROP_VENUE] = {"select": {"name": info["venue"]}}
+    venue = _normalise_venue(info.get("venue", ""))
+    if venue:
+        props[PROP_VENUE] = {"select": {"name": venue}}
     if info.get("url"):
         props[PROP_URL] = {"url": info["url"]}
     if info.get("one_line_summary"):
@@ -259,8 +281,12 @@ def build_paper_properties(info: dict) -> dict:
     props[PROP_READ_DATE] = {"date": {"start": datetime.now().strftime("%Y-%m-%d")}}
     # Reading status must follow the mode. Writing "精读完成" for every sync
     # marked five-minute scans as completed deep reads.
+    # These names must exist as options on the Notion status property, which
+    # offers 待读 / 在读 / 深度精读中 / 已读 / 精读完成. Writing a name that is not
+    # in the list does not fail loudly — it quietly adds another option, which
+    # is how a vocabulary drifts out of control.
     status_by_mode = {
-        "quick-scan": "速扫完成",
+        "quick-scan": "已读",
         "standard": "精读完成",
         "deep-dive": "精读完成",
     }
