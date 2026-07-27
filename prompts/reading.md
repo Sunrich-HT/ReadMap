@@ -128,18 +128,24 @@
 放不进任何论述旁边的图，说明它在这篇精读里不承重——**移出正文，进附件**。
 正文通常只留 2–4 张。
 
-### 无 shell 时怎么拿到图
+### 怎么抠 —— 有 PDF 就直接对 PDF 跑
 
-**跑不了 CLI ≠ 拿不到图。** 按顺序试：
+**用户挂了 PDF，或你能下到 PDF —— 这就是最简单、最可靠的路。不要先去折腾 HTML 或浏览器。**
 
-1. **嵌入 HTML 版原始图片（首选）** —— `arxiv.org/abs/XXXX` → `arxiv.org/html/XXXXv1`，
-   取每个 `<figure>` 里 `<img>` 的 `src` 补成绝对 URL 后嵌入。HTML 版的表格是文本表格，
-   转 Markdown，不要截图。
-2. **本地跑 `readmap read`**，把 contact sheet 与 manifest 目录表带回来。
-3. **降级（退路）** —— 前两条都不通才用。给出原文页码与图号、逐字 caption，
-   并明写缺口原因及试过哪条路。
+包没装就装（已验证，只需 PyMuPDF + Pillow + beautifulsoup4，无需 GPU 或模型）：
 
-**绝不凭空描述看不见的图。不要把「描述了图」写成「提取了图」**——前者是文字，后者是文件。
+```bash
+pip install git+https://github.com/Sunrich-HT/ReadMap
+readmap read <PDF 路径或论文链接>
+```
+
+只抠图不要骨架：`pip install git+https://github.com/Sunrich-HT/figure-extractor`
+后 `figure-extractor extract <PDF 路径> --out ./figures --dpi 300 --zip`。
+
+**包没装不是降级的理由 —— 先装。**
+
+**拿不到 PDF 时**才试 arXiv HTML 版并嵌入原始图片 URL。注意部分环境的 HTML
+抓取器会剥离 `<img src>`；碰到就回到下 PDF 直接跑。
 
 ## 一句话
 

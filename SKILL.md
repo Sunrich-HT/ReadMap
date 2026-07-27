@@ -139,24 +139,24 @@ readmap sync papers/<id>/reading.md                # → Notion
 放不进任何论述旁边的图，说明它在这篇精读里不承重——**移出正文，进附件**。
 正文通常只留 2–4 张。
 
-### 无 shell 环境（Notion AI 等）：三条路，按顺序试
+### 怎么抠 —— 有 PDF 就直接对 PDF 跑
 
-**跑不了 CLI ≠ 拿不到图。** 直接跳到降级是把一个可解的问题当成不可解的。
+**用户挂了 PDF，或你能下到 PDF —— 这就是最简单、最可靠的路。不要先去折腾 HTML 或浏览器。**
 
-**路一（首选）· 嵌入 HTML 版的原始图片。** 大多数 arXiv 论文有 HTML 版，
-图片是公开可直连的 PNG，多数富文本环境能直接嵌入外链图片：
-`arxiv.org/abs/XXXX` → `arxiv.org/html/XXXXv1`，取每个 `<figure>` 里 `<img>`
-的 `src` 并补成绝对 URL。HTML 版里的表格是文本表格，直接转 Markdown，不要截图。
+包没装就装（已验证，只需 PyMuPDF + Pillow + beautifulsoup4，无需 GPU 或模型）：
 
-**路二** · 无 HTML 版时，在有 shell 的地方跑 `readmap read`，把 contact sheet
-与 manifest 目录表带回来。
+```bash
+pip install git+https://github.com/Sunrich-HT/ReadMap
+readmap read <PDF 路径或论文链接>
+```
 
-**路三（退路）** · 前两条都不通才用。必须给出原文页码与图号、逐字 caption，
-并**明写缺口原因及试过哪条路**，例如「位图未获取 —— 该论文无 HTML 版，
-且当前环境无 shell」。
+只抠图不要骨架：`pip install git+https://github.com/Sunrich-HT/figure-extractor`
+后 `figure-extractor extract <PDF 路径> --out ./figures --dpi 300 --zip`。
 
-**绝不凭空描述没看见的图。不要把「描述了图」写成「提取了图」**——前者是文字，
-后者是文件。
+**包没装不是降级的理由 —— 先装。**
+
+**拿不到 PDF 时**才试 arXiv HTML 版并嵌入原始图片 URL。注意部分环境的 HTML
+抓取器会剥离 `<img src>`；碰到就回到下 PDF 直接跑。
 
 ## 质量门
 
