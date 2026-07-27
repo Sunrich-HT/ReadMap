@@ -106,6 +106,12 @@ readmap sync papers/<id>/reading.md                # → Notion
 
 ## 图表
 
+**抠图是精读的必经步骤，不是可选项，也不需要用户另外要求。** 收到「精读这篇论文」
+时的执行顺序是：**先抠图表 → 再按八问读 → 最后填字段**。图表作为证据进入第 6 问
+（证明了什么）与第 7 问（承重审计）。
+
+若图表确实取不到，必须写明缺口原因及试过哪条路，**不要静默跳过**。
+
 `readmap read` 会调用
 [figure-extractor](https://github.com/Sunrich-HT/figure-extractor)
 抠出**全部** Figure / Table / Scheme / Algorithm（含 `Extended Data Fig.`、
