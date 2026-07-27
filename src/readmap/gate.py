@@ -71,7 +71,9 @@ class GateReport:
 _ORPHAN_RE = re.compile(r"^\s*([a-z]{3,10})\s*$")
 _ORPHAN_ALLOW = {"todo", "tbd", "n/a", "na", "etc", "ibid"}
 
-_ESCAPE_RESIDUE_RE = re.compile(r"\\[>^~#*_`\[\]]")
+# Include `<`: real notes carry both `\>` and `\<` from automated writers,
+# and a character class that covers only one direction misses half of them.
+_ESCAPE_RESIDUE_RE = re.compile(r"\\[<>^~#*_`|\[\]]")
 _INTERNAL_LINK_RE = re.compile(r"\]\(([^)]*\b(?:SKILL\.md|CLAUDE\.md|\.claude/)[^)]*)\)")
 _BROKEN_NOTION_URL_RE = re.compile(r"https://[^\s)]*notion[^\s)]*[?&]pvs=\d+[^\s)]*\)")
 

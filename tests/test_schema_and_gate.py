@@ -151,3 +151,11 @@ def test_evidence_level_vocabulary(level, ok):
     closure = "replicated" if level in ("L4", "L5") else "reading-done"
     problems = ReadingMeta(title="T", evidence_level=level, closure=closure).problems()
     assert (problems == []) is ok
+
+
+def test_escape_residue_covers_both_angle_brackets(tmp_path):
+    """Real notes carried both `\\>` and `\\<`; the class had only one."""
+    meta, body = _note(tmp_path, 'title: "T"', "奖励 \\>0.9、准确率 \\<4%\n")
+    found = " ".join(f.message for f in check(meta, body, strict=False).findings)
+    assert "转义残留" in found
+    assert "\\<" in found and "\\>" in found
