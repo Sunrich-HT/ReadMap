@@ -226,6 +226,20 @@ npm install -g quartz
 npx quartz build --serve
 ```
 
+## 作为 agent skill 使用
+
+仓库根目录有 [`SKILL.md`](SKILL.md)（标准 YAML frontmatter），
+skill-aware 的 agent（Claude Code / Codex / Kimi）可自动加载。
+把仓库放进你的 skills 目录后，一句话即可触发：
+
+> 用 ReadMap 精读这篇论文：<url>
+
+方法论、三条硬规则、必填元数据和图表降级契约都在 SKILL.md 里，
+不需要在提示词里重复。
+
+> **注意**：Notion AI 没有 skill 加载器，不会去读这个仓库。
+> 在 Notion 里使用时，把 SKILL.md 的内容放成一个 Notion 页面再引用它。
+
 ## Development
 
 ```bash
